@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Entity;
 
-use ChamberOrchestra\DoctrineClockBundle\Contracts\Entity\TimestampCreateInterface;
 use ChamberOrchestra\DoctrineClockBundle\Entity\TimestampCreateTrait;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'create_only_entities')]
-class CreateOnlyEntity implements TimestampCreateInterface
+class CreateOnlyEntity
 {
     use TimestampCreateTrait;
 

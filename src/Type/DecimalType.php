@@ -19,7 +19,7 @@ class DecimalType extends \Doctrine\DBAL\Types\DecimalType
     {
         $val = parent::convertToPHPValue($value, $platform);
 
-        return null !== $val ? (string)$val : null;
+        return null !== $val ? (string) $val : null;
     }
 
     public function requiresSQLCommentHint(AbstractPlatform $platform): bool

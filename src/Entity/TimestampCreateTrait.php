@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace ChamberOrchestra\DoctrineClockBundle\Entity;
 
+use ChamberOrchestra\DoctrineClockBundle\Mapping\Attribute\CreateTimestamp;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\DatePointType;
 use Symfony\Component\Clock\DatePoint;
@@ -18,11 +19,17 @@ use Symfony\Component\Clock\DatePoint;
 #[ORM\MappedSuperclass]
 trait TimestampCreateTrait
 {
+    #[CreateTimestamp]
     #[ORM\Column(type: DatePointType::NAME, nullable: false)]
     protected DatePoint $createdDatetime;
 
     public function getCreatedDatetime(): DatePoint
     {
         return $this->createdDatetime;
+    }
+
+    public function setCreatedDatetime(DatePoint $createdDatetime): void
+    {
+        $this->createdDatetime = $createdDatetime;
     }
 }

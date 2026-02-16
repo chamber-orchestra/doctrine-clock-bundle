@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Integrational;
 
-use DateTime;
-use DateTimeImmutable;
 use Tests\Fixtures\Entity\CustomTypesEntity;
 
 final class CustomTypesRoundTripTest extends DoctrineTestCase
 {
     public function testCustomDbalTypesRoundTrip(): void
     {
-        $mutable = new DateTime('2024-01-01 10:11:12.654321');
-        $immutable = new DateTimeImmutable('2024-01-01 10:11:12.123456');
+        $mutable = new \DateTime('2024-01-01 10:11:12.654321');
+        $immutable = new \DateTimeImmutable('2024-01-01 10:11:12.123456');
         $entity = new CustomTypesEntity($mutable, $immutable, '10.50');
 
         $this->entityManager->persist($entity);

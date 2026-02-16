@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ChamberOrchestra\DoctrineClockBundle\Type\Exception;
 
 class ConversionException extends \Doctrine\DBAL\Types\ConversionException
 {
-    static public function conversionFailed(mixed $value, string $toType): self
+    public static function conversionFailed(mixed $value, string $toType): self
     {
         $value = self::stringifyValue($value);
 
         return new self('Could not convert database value "'.$value.'" to Doctrine Type '.$toType);
     }
 
-    static public function conversionFailedFormat(mixed $value, string $toType, string $expectedFormat): self
+    public static function conversionFailedFormat(mixed $value, string $toType, string $expectedFormat): self
     {
         $value = self::stringifyValue($value);
 
@@ -21,7 +23,10 @@ class ConversionException extends \Doctrine\DBAL\Types\ConversionException
         );
     }
 
-    static public function conversionFailedInvalidType(mixed $value, string $toType, array $expectedTypes = []): self
+    /**
+     * @param list<string> $expectedTypes
+     */
+    public static function conversionFailedInvalidType(mixed $value, string $toType, array $expectedTypes = []): self
     {
         $value = self::stringifyValue($value);
 
@@ -36,17 +41,21 @@ class ConversionException extends \Doctrine\DBAL\Types\ConversionException
         if (null === $value) {
             $stringValue = 'null';
         } elseif (\is_object($value)) {
-            if (\method_exists($value, '__toString')) {
-                $stringValue = (string)$value;
-            } else {
+            try {
+                $stringValue = \method_exists($value, '__toString')
+                    ? (string) $value
+                    : \get_debug_type($value);
+            } catch (\Throwable) {
                 $stringValue = \get_debug_type($value);
             }
         } elseif (\is_array($value)) {
             $stringValue = 'array';
         } elseif (\is_resource($value)) {
             $stringValue = 'resource';
+        } elseif (\is_scalar($value)) {
+            $stringValue = (string) $value;
         } else {
-            $stringValue = (string)$value;
+            $stringValue = \get_debug_type($value);
         }
 
         return (\strlen($stringValue) > 32) ? \substr($stringValue, 0, 20).'...' : $stringValue;

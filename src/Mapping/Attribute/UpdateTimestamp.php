@@ -9,8 +9,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace ChamberOrchestra\DoctrineClockBundle\Contracts\Entity;
+namespace ChamberOrchestra\DoctrineClockBundle\Mapping\Attribute;
 
-interface TimestampInterface extends TimestampCreateInterface, TimestampUpdateInterface
+use Doctrine\ORM\Mapping\MappingAttribute;
+
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
+final readonly class UpdateTimestamp implements MappingAttribute
 {
 }

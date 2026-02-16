@@ -11,65 +11,80 @@ declare(strict_types=1);
 
 namespace ChamberOrchestra\DoctrineClockBundle\EventSubscriber;
 
-use ChamberOrchestra\DoctrineClockBundle\Contracts\Entity\TimestampCreateInterface;
-use ChamberOrchestra\DoctrineClockBundle\Contracts\Entity\TimestampUpdateInterface;
+use ChamberOrchestra\DoctrineClockBundle\Mapping\Configuration\TimestampConfiguration;
+use ChamberOrchestra\MetadataBundle\EventSubscriber\AbstractDoctrineListener;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PrePersistEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Symfony\Component\Clock\DatePoint;
 
 #[AsDoctrineListener(event: Events::preUpdate)]
 #[AsDoctrineListener(event: Events::prePersist)]
-readonly class TimestampSubscriber
+class TimestampSubscriber extends AbstractDoctrineListener
 {
     public function prePersist(PrePersistEventArgs $eventArgs): void
     {
         $entity = $eventArgs->getObject();
         $em = $eventArgs->getObjectManager();
-        if ($entity instanceof TimestampCreateInterface) {
-            if (null === $this->getCreatedDatetime($em, $entity)) {
-                $this->setCreatedDatetime($em, $entity);
-            }
+
+        $config = $this->getTimestampConfiguration($em, $entity);
+        if (null === $config) {
+            return;
         }
 
-        if ($entity instanceof TimestampUpdateInterface) {
-            if (null === $this->getUpdatedDatetime($em, $entity)) {
-                $this->setUpdatedDatetime($em, $entity);
-            }
-        }
+        $classMetadata = $em->getClassMetadata(ClassUtils::getClass($entity));
+        $now = new DatePoint();
+
+        // On insert, only set timestamps that haven't been manually pre-populated
+        $this->setTimestampFields($classMetadata, $entity, $config->getCreateFields(), $now, onlyIfNull: true);
+        $this->setTimestampFields($classMetadata, $entity, $config->getUpdateFields(), $now, onlyIfNull: true);
     }
 
     public function preUpdate(PreUpdateEventArgs $eventArgs): void
     {
         $entity = $eventArgs->getObject();
-        if ($entity instanceof TimestampUpdateInterface) {
-            $em = $eventArgs->getObjectManager();
-            $this->setUpdatedDatetime($em, $entity);
+        $em = $eventArgs->getObjectManager();
+
+        $config = $this->getTimestampConfiguration($em, $entity);
+        if (null === $config) {
+            return;
+        }
+
+        $updateFields = $config->getUpdateFields();
+        if ([] !== $updateFields) {
             $classMetadata = $em->getClassMetadata(ClassUtils::getClass($entity));
+            // On update, always overwrite to reflect the latest modification time
+            $this->setTimestampFields($classMetadata, $entity, $updateFields, new DatePoint(), onlyIfNull: false);
             $em->getUnitOfWork()->recomputeSingleEntityChangeSet($classMetadata, $entity);
         }
     }
 
-    private function getUpdatedDatetime(EntityManagerInterface $em, object $entity): DatePoint|null
+    /**
+     * @param ClassMetadata<object> $classMetadata
+     * @param list<string>          $fields
+     */
+    private function setTimestampFields(ClassMetadata $classMetadata, object $entity, array $fields, DatePoint $now, bool $onlyIfNull): void
     {
-        return $em->getClassMetadata(ClassUtils::getClass($entity))->getFieldValue($entity, 'updatedDatetime');
+        foreach ($fields as $field) {
+            if ($onlyIfNull && null !== $classMetadata->getFieldValue($entity, $field)) {
+                continue;
+            }
+            $classMetadata->setFieldValue($entity, $field, $now);
+        }
     }
 
-    private function setUpdatedDatetime(EntityManagerInterface $em, object $entity): void
+    private function getTimestampConfiguration(EntityManagerInterface $em, object $entity): ?TimestampConfiguration
     {
-        $em->getClassMetadata(ClassUtils::getClass($entity))->setFieldValue($entity, 'updatedDatetime', new DatePoint());
-    }
+        $config = $this->getConfiguration($em, $entity, TimestampConfiguration::class);
 
-    private function getCreatedDatetime(EntityManagerInterface $em, object $entity): DatePoint|null
-    {
-        return $em->getClassMetadata(ClassUtils::getClass($entity))->getFieldValue($entity, 'createdDatetime');
-    }
+        if (!$config instanceof TimestampConfiguration) {
+            return null;
+        }
 
-    private function setCreatedDatetime(EntityManagerInterface $em, object $entity): void
-    {
-        $em->getClassMetadata(ClassUtils::getClass($entity))->setFieldValue($entity, 'createdDatetime', new DatePoint());
+        return $config;
     }
 }

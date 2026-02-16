@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Entity;
 
-use ChamberOrchestra\DoctrineClockBundle\Contracts\Entity\TimestampUpdateInterface;
 use ChamberOrchestra\DoctrineClockBundle\Entity\TimestampUpdateTrait;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'update_only_entities')]
-class UpdateOnlyEntity implements TimestampUpdateInterface
+class UpdateOnlyEntity
 {
     use TimestampUpdateTrait;
 
