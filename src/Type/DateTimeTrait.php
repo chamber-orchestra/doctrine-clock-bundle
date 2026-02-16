@@ -16,7 +16,6 @@ use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 
 trait DateTimeTrait
 {
-
     /**
      * Gets the format string, as accepted by the date() function, that describes
      * the format of a stored datetime value of this platform.
@@ -32,7 +31,11 @@ trait DateTimeTrait
             return $platform->getDateTimeTypeDeclarationSQL($column);
         }
 
-        if (isset($column['scale']) && \is_int($column['scale'])) {
+        if (isset($column['scale'])) {
+            if (!\is_int($column['scale']) || $column['scale'] < 0 || $column['scale'] > 6) {
+                throw new \InvalidArgumentException(\sprintf('PostgreSQL TIMESTAMP scale must be an integer between 0 and 6, %s given.', \var_export($column['scale'], true)));
+            }
+
             return 'TIMESTAMP('.$column['scale'].') WITHOUT TIME ZONE';
         }
 

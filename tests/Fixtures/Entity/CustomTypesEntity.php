@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Entity;
 
-use DateTime;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -18,15 +16,15 @@ class CustomTypesEntity
     private ?int $id = null;
 
     #[ORM\Column(type: 'datetime')]
-    private DateTime $dateMutable;
+    private \DateTime $dateMutable;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $dateImmutable;
+    private \DateTimeImmutable $dateImmutable;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private string $amount;
 
-    public function __construct(DateTime $dateMutable, DateTimeImmutable $dateImmutable, string $amount)
+    public function __construct(\DateTime $dateMutable, \DateTimeImmutable $dateImmutable, string $amount)
     {
         $this->dateMutable = $dateMutable;
         $this->dateImmutable = $dateImmutable;
@@ -38,12 +36,12 @@ class CustomTypesEntity
         return $this->id;
     }
 
-    public function getDateMutable(): DateTime
+    public function getDateMutable(): \DateTime
     {
         return $this->dateMutable;
     }
 
-    public function getDateImmutable(): DateTimeImmutable
+    public function getDateImmutable(): \DateTimeImmutable
     {
         return $this->dateImmutable;
     }

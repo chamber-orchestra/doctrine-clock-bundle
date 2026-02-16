@@ -13,6 +13,6 @@ namespace ChamberOrchestra\DoctrineClockBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class ChamberOrchestraDoctrineClockBundle extends Bundle
+final class ChamberOrchestraDoctrineClockBundle extends Bundle
 {
 }

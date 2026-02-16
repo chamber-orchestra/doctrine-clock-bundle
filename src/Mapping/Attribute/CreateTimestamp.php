@@ -9,11 +9,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace ChamberOrchestra\DoctrineClockBundle\Contracts\Entity;
+namespace ChamberOrchestra\DoctrineClockBundle\Mapping\Attribute;
 
-use Symfony\Component\Clock\DatePoint;
+use Doctrine\ORM\Mapping\MappingAttribute;
 
-interface TimestampCreateInterface
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
+final readonly class CreateTimestamp implements MappingAttribute
 {
-    public function getCreatedDatetime(): DatePoint;
 }

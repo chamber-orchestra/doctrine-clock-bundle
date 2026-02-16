@@ -19,8 +19,5 @@ return static function (ContainerConfigurator $container): void {
         ->private();
 
     $services->load('ChamberOrchestra\\DoctrineClockBundle\\', __DIR__.'/../../*')
-        ->exclude(__DIR__.'/../../{DependencyInjection,Resources,ExceptionInterface,Repository}');
-
-    $services->load('ChamberOrchestra\\DoctrineClockBundle\\EventSubscriber\\', __DIR__.'/../../EventSubscriber/')
-        ->tag('doctrine.event_subscriber');
+        ->exclude(__DIR__.'/../../{DependencyInjection,Resources,Exception,Repository,Entity}');
 };

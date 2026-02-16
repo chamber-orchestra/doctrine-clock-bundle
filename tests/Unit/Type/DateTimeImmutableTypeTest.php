@@ -6,7 +6,6 @@ namespace Tests\Unit\Type;
 
 use ChamberOrchestra\DoctrineClockBundle\Type\DateTimeImmutableType;
 use ChamberOrchestra\DoctrineClockBundle\Type\Exception\ConversionException;
-use DateTimeImmutable;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Types\Types;
 use PHPUnit\Framework\TestCase;
@@ -36,7 +35,7 @@ final class DateTimeImmutableTypeTest extends TestCase
     public function testConvertToDatabaseValueFormatsDateTime(): void
     {
         $platform = new PostgreSQLPlatform();
-        $value = new DateTimeImmutable('2024-01-01 10:11:12');
+        $value = new \DateTimeImmutable('2024-01-01 10:11:12');
 
         self::assertSame('2024-01-01 10:11:12.000000', $this->type->convertToDatabaseValue($value, $platform));
     }
@@ -47,6 +46,13 @@ final class DateTimeImmutableTypeTest extends TestCase
 
         $platform = new PostgreSQLPlatform();
         $this->type->convertToDatabaseValue('invalid', $platform);
+    }
+
+    public function testConvertToPHPValueReturnsNullForNull(): void
+    {
+        $platform = new PostgreSQLPlatform();
+
+        self::assertNull($this->type->convertToPHPValue(null, $platform));
     }
 
     public function testConvertToPHPValueAcceptsDatePoint(): void
@@ -63,8 +69,34 @@ final class DateTimeImmutableTypeTest extends TestCase
 
         $value = $this->type->convertToPHPValue('2024-01-01 10:11:12.000000', $platform);
 
-        self::assertInstanceOf(DateTimeImmutable::class, $value);
+        self::assertInstanceOf(DatePoint::class, $value);
         self::assertSame('2024-01-01 10:11:12.000000', $value->format('Y-m-d H:i:s.u'));
+    }
+
+    public function testConvertToPHPValueFallsBackToGenericParsing(): void
+    {
+        $platform = new PostgreSQLPlatform();
+
+        $value = $this->type->convertToPHPValue('2024-01-01T10:11:12+00:00', $platform);
+
+        self::assertInstanceOf(DatePoint::class, $value);
+        self::assertSame('2024-01-01', $value->format('Y-m-d'));
+    }
+
+    public function testConvertToPHPValueRejectsNonString(): void
+    {
+        $this->expectException(ConversionException::class);
+
+        $platform = new PostgreSQLPlatform();
+        $this->type->convertToPHPValue(12345, $platform);
+    }
+
+    public function testConvertToPHPValueThrowsOnInvalidDate(): void
+    {
+        $this->expectException(ConversionException::class);
+
+        $platform = new PostgreSQLPlatform();
+        $this->type->convertToPHPValue('not-a-valid-date-at-all!!!', $platform);
     }
 
     public function testRequiresSqlCommentHint(): void

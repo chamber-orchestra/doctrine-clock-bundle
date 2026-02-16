@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Entity;
 
-use ChamberOrchestra\DoctrineClockBundle\Contracts\Entity\TimestampInterface;
 use ChamberOrchestra\DoctrineClockBundle\Entity\PrecisedTimestampTrait;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'precised_timestamped_entities')]
-class PrecisedTimestampedEntity implements TimestampInterface
+class PrecisedTimestampedEntity
 {
     use PrecisedTimestampTrait;
 
